@@ -22,7 +22,8 @@ BOT_PREFIX = os.getenv('BOT_PREFIX')
 bot = commands.Bot(command_prefix=BOT_PREFIX)
 
 INITIAL_EXTENSIONS = {
-    'cogs.ping'
+    'cogs.ping',
+    'cogs.pomodoro'
 }
 
 @bot.event
