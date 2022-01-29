@@ -33,8 +33,8 @@ class Pomodoro(commands.Cog, name='pomodoro'):
     )
     @commands.guild_only()
     async def pomodoro_start(self, ctx: commands.Context, study_time: int, break_time: int, repetitions: int ) -> None:
-        self.study_time = study_time
-        self.break_time = break_time
+        self.study_time = study_time * 60
+        self.break_time = break_time * 60
         self.repetitions = repetitions
         
         self.state = State.STUDY
