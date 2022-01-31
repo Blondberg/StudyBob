@@ -38,21 +38,27 @@ class Pomodoro(commands.Cog, name='pomodoro'):
     )
     @commands.guild_only()
     async def pomodoro_setup(self, ctx: commands.Context, study_time: int, break_time: int, repetitions: int ) -> None:
-        self.study_time = study_time * 60
-        self.break_time = break_time * 60
+        self.study_time = study_time 
+        self.break_time = break_time 
         self.repetitions = repetitions
-        
-        self.state = State.STUDY
-        
+                
         self.countdown = self.study_time
         
+        if self.state is State.STUDY or self.state is State.BREAK: 
+            embed=discord.Embed(title=":tomato: Pomodoro Session Running :tomato:", color=0xff1414)
+            embed.add_field(name="A session is already running!", 
+                            value=f'Make sure to stop it with !pomstop if you want to start a new one!', 
+                            inline=True)
+
+            message = await ctx.send(embed=embed)
+        
         def check(reaction, user): 
-            return str(reaction.emoji) == '▶️'
+            return user != reaction.message.author and str(reaction.emoji) == '▶️'
         
         try:
             self.timer.stop()
             
-            embed=discord.Embed(title=":tomato: Pomodoro Start :tomato:", color=0xff1414)
+            embed=discord.Embed(title=":tomato: Pomodoro Setup :tomato:", color=0xff1414)
             embed.add_field(name="Study time", value=f'{study_time} min', inline=True)
             embed.add_field(name="Break time", value=f'{break_time} min', inline=True)
             embed.add_field(name="Repetitions", value=self.repetitions, inline=True)
@@ -62,8 +68,9 @@ class Pomodoro(commands.Cog, name='pomodoro'):
             self.state = State.SETUP
             
             await self.bot.wait_for('reaction_add', check=check)
-            if self.state == State.SETUP:
+            if self.state is State.SETUP:
                 self.timer.start(ctx)
+                self.state = State.STUDY
                 embed=discord.Embed(title=":tomato: Pomodoro Timer Started :tomato:", color=0xff1414)
                 await ctx.send(embed=embed)   
         except:
@@ -76,7 +83,7 @@ class Pomodoro(commands.Cog, name='pomodoro'):
     )
     @commands.guild_only()
     async def pomodoro_start(self, ctx: commands.Context) -> None: 
-        if self.state == State.NOT_ACTIVE: 
+        if self.state is State.NOT_ACTIVE: 
             embed=discord.Embed(title=":tomato: Pomodoro No Session Setup :tomato:", color=0xff1414)
             embed.add_field(name=f'Make sure to setup a new session with !pomsetup', value='\u200b', inline=True)
             await ctx.send(embed=embed)
@@ -90,6 +97,7 @@ class Pomodoro(commands.Cog, name='pomodoro'):
                 await ctx.send(embed=embed)
                 return
             self.timer.start(ctx)
+            self.state = State.STUDY
             embed=discord.Embed(title=":tomato: Pomodoro Timer Started :tomato:", color=0xff1414)
             await ctx.send(embed=embed) 
         except: 
@@ -135,6 +143,7 @@ class Pomodoro(commands.Cog, name='pomodoro'):
         try:
             self.timer.stop()
             self.countdown = 0
+            self.state = State.NOT_ACTIVE 
             embed=discord.Embed(title=":tomato: Pomodoro timer stopped :tomato:", color=0xff1414)
             await ctx.send(embed=embed)
         except:
@@ -162,7 +171,6 @@ class Pomodoro(commands.Cog, name='pomodoro'):
                     embed=discord.Embed(title=":tomato: Pomodoro study over :tomato:", color=0xff1414)
                     embed.add_field(name='Study time is over', value='Break time!', inline=True)
                     await ctx.send(embed=embed)
-                    # await self.send_to_members(ctx, embed)
                     
             else: 
                 self.countdown = self.study_time
@@ -170,7 +178,6 @@ class Pomodoro(commands.Cog, name='pomodoro'):
                 embed=discord.Embed(title=":tomato: Pomodoro break over :tomato:", color=0xff1414)
                 embed.add_field(name='Break time is over', value='Back to work!', inline=True)
                 await ctx.send(embed=embed)
-                # await self.send_to_members(ctx, embed)
                 
     async def send_to_members(self, ctx, embed): 
         for member in ctx.guild.get_channel(689078051920674819).members:
